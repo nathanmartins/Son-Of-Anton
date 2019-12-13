@@ -1,0 +1,9 @@
+face_recognition
+mtcnn==0.1.0
+numpy==1.17.4
+opencv-python
+pandas==0.25.3
+Pillow==6.2.1
+scikit-image
+scikit-learn==0.22
+tensorflow
