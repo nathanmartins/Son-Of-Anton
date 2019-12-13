@@ -13,9 +13,10 @@ from tensorflow_core.python.keras.models import load_model
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_DIR = os.path.join(BASE_DIR, "dataset")
-
 TRAIN_DIR = os.path.join(DATASET_DIR, "train")
 TEST_DIR = os.path.join(DATASET_DIR, "test")
+
+
 # DEBUG = True
 DEBUG = False
 
