@@ -8,7 +8,7 @@ import PIL.Image
 import numpy as np
 from mtcnn import MTCNN
 from numpy import expand_dims
-from sklearn import preprocessing, neighbors, datasets
+from sklearn import preprocessing, neighbors
 from tensorflow_core.python.keras.models import load_model
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -103,11 +103,11 @@ def train():
         y_labels = pickle.load(f)
 
     # convert each face in the train set to an embedding
-    newTrainX = list()
+    encoded_x_train = list()
     for face_pixels in x_train:
         embedding = get_embedding(face_pixels)[0]
-        newTrainX.append(embedding)
-    newTrainX = np.asarray(newTrainX)
+        encoded_x_train.append(embedding)
+    encoded_x_train = np.asarray(encoded_x_train)
 
     # Determine how many neighbors to use for weighting in the KNN classifier.
     n_neighbors = int(round(math.sqrt(len(x_train))))
@@ -115,7 +115,7 @@ def train():
 
     # Create and train the KNN classifier.
     knn_clf = neighbors.KNeighborsClassifier(n_neighbors=n_neighbors, algorithm="ball_tree", weights='distance')
-    knn_clf.fit(newTrainX, y_labels)
+    knn_clf.fit(encoded_x_train, y_labels)
 
     # Save the trained KNN classifier
     with open("model.clf", 'wb') as f:
