@@ -195,7 +195,7 @@ def predict():
                         a = "nsm"
                     logging.info(f"Found: {a} - {img}")
                 else:
-                    logging.info("unknown")
+                    logging.warning(f"WARNING: COULD NOT IDENTIFY A FACE IN {full_path}")
 
 
 if __name__ == '__main__':
