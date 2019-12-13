@@ -56,6 +56,18 @@ def extract_faces(img_path: str):
     return faces_arr, faces
 
 
+def get_embedding(face_pixels):
+    # scale pixel values
+    face_pixels = face_pixels.astype('float32')
+    # standardize pixel values across channels (global)
+    mean, std = face_pixels.mean(), face_pixels.std()
+    face_pixels = (face_pixels - mean) / std
+    # transform face into one sample
+    samples = expand_dims(face_pixels, axis=0)
+    # make prediction to get embedding
+    return model.predict(samples)
+
+
 def prepare():
     x_train = list()
     y_labels = list()
@@ -122,30 +134,12 @@ def train():
         pickle.dump(knn_clf, f)
 
 
-# get the face embedding for one face
-def get_embedding(face_pixels):
-    # scale pixel values
-    face_pixels = face_pixels.astype('float32')
-    # standardize pixel values across channels (global)
-    mean, std = face_pixels.mean(), face_pixels.std()
-    face_pixels = (face_pixels - mean) / std
-    # transform face into one sample
-    samples = expand_dims(face_pixels, axis=0)
-    # make prediction to get embedding
-    return model.predict(samples)
-
-
 def predict():
     with open("model.clf", 'rb') as f:
         knn_clf = pickle.load(f)
 
-    # with open("y_labels.pickle", 'rb') as f:
-    #     y_labels = pickle.load(f)
-
     with open("labels_encoded.pickle", 'rb') as f:
         y_labels = pickle.load(f)
-
-    # breakpoint()
 
     le = preprocessing.LabelEncoder()
     le.fit_transform(y_labels)
@@ -172,8 +166,6 @@ def predict():
 
             # Use the KNN model to find the best matches for the test face
             closest_distances = knn_clf.kneighbors(faces_encodings, n_neighbors=1)
-            # are_matches = [closest_distances[0][i][0] <= 0.6 for i in range(len(x_face_locations))]
-
             are_matches = list()
 
             for i in range(len(x_face_locations)):
@@ -203,12 +195,6 @@ def predict():
                     logging.info(f"Found: {a} - {img}")
                 else:
                     logging.info("unknown")
-
-        # Predict classes and remove classifications that aren't within the threshold\
-        # prediction = knn_clf.predict(faces_encodings)
-        # print(full_path)
-        # print([(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in
-        #        zip(knn_clf.predict(faces_encodings), x_face_locations, are_matches)])
 
 
 if __name__ == '__main__':
