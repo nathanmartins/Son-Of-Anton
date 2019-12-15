@@ -16,9 +16,8 @@ DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 TRAIN_DIR = os.path.join(DATASET_DIR, "train")
 TEST_DIR = os.path.join(DATASET_DIR, "test")
 
-
-# DEBUG = True
-DEBUG = False
+DEBUG = True
+# DEBUG = False
 
 model = load_model('facenet_keras.h5')
 
@@ -40,7 +39,7 @@ def extract_faces(img_path: str):
         return None, None
 
     for face in faces:
-        logging.debug(f"Image {img_path} is suitable for training!")
+        # logging.debug(f"Image {img_path} is suitable for training!")
 
         x1, y1, width, height = face['box']
         # bug fix
@@ -129,6 +128,8 @@ def train():
     # Create and train the KNN classifier.
     knn_clf = neighbors.KNeighborsClassifier(n_neighbors=n_neighbors, algorithm="ball_tree", weights='distance')
     knn_clf.fit(encoded_x_train, y_labels)
+    # perdicted = list()
+    # metrics.accuracy(y_labels, perdicted)
 
     # Save the trained KNN classifier
     with open("model.clf", 'wb') as f:
@@ -144,15 +145,17 @@ def predict():
 
     le = preprocessing.LabelEncoder()
     le.fit_transform(y_labels)
-
+    # breakpoint()
     for img in os.listdir(TEST_DIR):
+
+        # logging.info(f"Testing image: {img}")
 
         full_path = os.path.join(TEST_DIR, img)
 
         faces, raws = extract_faces(full_path)
 
         if faces is None:
-            logging.warning(f"WARNING: COULD NOT FIND A FACE IN {full_path}")
+            logging.info(f"WARNING: COULD NOT FIND A FACE IN {full_path}")
             continue
 
         c = 0
@@ -173,29 +176,33 @@ def predict():
                 try:
 
                     dis = closest_distances[0][i][0]
-
-                    logging.debug(f"Closest distance is  {dis} - {dis <= 6}")
+                    # logging.debug(f"Closest distance is  {dis} - {dis < 7}")
 
                     if dis < 7:
-                        logging.debug(f"Adding a Dis {dis}")
+                        # logging.debug(f"Adding a Dis {dis}")
                         are_matches.append(dis)
                 except IndexError:
                     pass
 
-            logging.debug(f"Dis is {are_matches}")
+            # logging.debug(f"Dis is {are_matches}")
 
             pred = knn_clf.predict(faces_encodings)
 
-            for pred, loc, rec in zip(pred, x_face_locations, are_matches):
+            if len(are_matches) > 0:
 
-                if rec:
-                    if pred == 1:
-                        a = "unknown"
+                for pred, loc, rec in zip(pred, x_face_locations, are_matches):
+
+                    if rec:
+                        if pred == 1:
+                            a = "unknown"
+                        else:
+                            a = "nsm"
+                        logging.info(f"Found: {a} - {img}")
                     else:
-                        a = "nsm"
-                    logging.info(f"Found: {a} - {img}")
-                else:
-                    logging.warning(f"WARNING: COULD NOT IDENTIFY A FACE IN {full_path}")
+                        logging.warning(f"WARNING: COULD NOT IDENTIFY A FACE IN {full_path}")
+            else:
+                a = "unknown"
+                logging.info(f"Found: {a} - {img}")
 
 
 if __name__ == '__main__':
