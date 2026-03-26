@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:2.0.0-py3-jupyter
+FROM tensorflow/tensorflow:2.2.3-py3-jupyter
 
 RUN pip3 install --upgrade pip
 
